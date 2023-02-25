@@ -14,12 +14,14 @@ import {
   RadioChangeEvent,
   Row,
   Space,
+  TableProps,
   theme,
   Typography,
 } from "antd";
 
 import ResultTable from "./ResultTable/ResultTable";
 import IndexedDb from "./IndexedDb/IndexedDb";
+import Table, { ColumnsType } from "antd/es/table";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -38,6 +40,9 @@ const App: React.FC = () => {
   const [kSpot, setKSpot] = useState("");
   const [crSpot, setCrSpot] = useState("");
 
+  const [deneme, setDeneme] = useState("");
+  const indexedDb = new IndexedDb("urineBaby");
+
   const options = [
     { label: "Female", value: "Female" },
     { label: "Male", value: "Male" },
@@ -51,6 +56,32 @@ const App: React.FC = () => {
     tanaka: "",
   });
 
+  // useEffect(() => {
+  //   try {
+  //     const runIndexDb = async () => {
+  //       await indexedDb.createObjectStore(["person"]);
+  //       await indexedDb.putValue("person", {
+  //         kawasaki: { result },
+  //         tanaka: "10",
+  //         intersalt: "11",
+  //       });
+  //       await indexedDb.putBulkValue("books", [
+  //         { tanaka: "12" },
+  //         { kawasaki: "14" },
+  //       ]);
+  //       const ff = await indexedDb.getValue("person", 1);
+  //       setDeneme(ff.kawasaki);
+  //       console.log("deneme:" + ff.kawasaki);
+  //       await indexedDb.getAllValue("books")
+  //       await indexedDb.deleteValue("books", 1);
+  //     };
+  //     console.log("Success database");
+  //     runIndexDb();
+  //   } catch (error) {
+  //     console.log("database cannot open!", +error);
+  //   }
+  // }, [result]);
+
   const onSubmit = () => {
     setInfo({
       gender: gender,
@@ -63,13 +94,25 @@ const App: React.FC = () => {
     });
   };
 
-  const onFinish = (values: PatientInfo) => {
+  const onFinish = async (values: PatientInfo) => {
     console.log("Success:", values);
     // console.log(info);
     // setBool(true);
     let kawasaki = calculateKawasaki();
     let intersalt = calculateIntersalt();
     let tanaka = calculateTanaka();
+    await indexedDb.createObjectStore(["person"]);
+    try {
+      await indexedDb.putValue("person", {
+        gender: gender,
+        kawasaki: kawasaki.toString(),
+        tanaka: tanaka.toString(),
+        intersalt: intersalt.toString(),
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
     setResult({
       gender: gender,
       kawasaki: kawasaki.toString(),
@@ -103,38 +146,22 @@ const App: React.FC = () => {
     setGender(value);
   };
 
-  useEffect(() => {
-    const runIndexDb = async () => {
-      const indexedDb = new IndexedDb("test");
-      await indexedDb.createObjectStore(["books", "students"]);
-      await indexedDb.putValue("books", { name: "A Game of Thrones" });
-      await indexedDb.putBulkValue("books", [
-        { name: "A Song of Fire and Ice" },
-        { name: "Harry Potter and the Chamber of Secrets" },
-      ]);
-      await indexedDb.getValue("books", 1);
-      await indexedDb.getAllValue("books");
-      await indexedDb.deleteValue("books", 1);
-    };
-    runIndexDb();
-  }, []);
+  // const handleSubmit = (evnt) => {
+  //   evnt.preventDefault();
 
-  const handleSubmit = (evnt) => {
-    evnt.preventDefault();
-
-    const checkEmptyInput = !Object.values(result).every((res) => res === "");
-    if (checkEmptyInput) {
-      const newData = (data) => [...data, result];
-      setTableData(newData);
-      const emptyInput = {
-        gender: "",
-        kawasaki: "",
-        intersalt: "",
-        tanaka: "",
-      };
-      setResult(emptyInput);
-    }
-  };
+  //   const checkEmptyInput = !Object.values(result).every((res) => res === "");
+  //   if (checkEmptyInput) {
+  //     const newData = (data) => [...data, result];
+  //     setTableData(newData);
+  //     const emptyInput = {
+  //       gender: "",
+  //       kawasaki: "",
+  //       intersalt: "",
+  //       tanaka: "",
+  //     };
+  //     setResult(emptyInput);
+  //   }
+  // };
 
   const calculateKawasaki = () => {
     let Pr24h = 0;
@@ -239,6 +266,83 @@ const App: React.FC = () => {
 
     return Na24;
   };
+
+  const columns: ColumnsType<Results> = [
+    {
+      title: "Id",
+      dataIndex: "id",
+    },
+    {
+      title: "Gender",
+      dataIndex: "gender",
+    },
+    {
+      title: "Kawasaki",
+      dataIndex: "kawasaki",
+      //   sorter: {
+      //     compare: (a, b) => a.kawasaki - b.kawasaki,
+      //     multiple: 3,
+      //   },
+    },
+    {
+      title: "Intersalt",
+      dataIndex: "intersalt",
+      //   sorter: {
+      //     compare: (a, b) => a.intersalt - b.intersalt,
+      //     multiple: 2,
+      //   },
+    },
+    {
+      title: "Tanaka",
+      dataIndex: "tanaka",
+      //   sorter: {
+      //     compare: (a, b) => a.tanaka - b.tanaka,
+      //     multiple: 1,
+      //   },
+    },
+  ];
+
+  //const [result, setResult] = useState<Results>();
+  const [data, setData] = useState<Results>();
+
+  useEffect(() => {
+    const runIndexDb = async () => {
+      var items = [];
+      const indexedDb = new IndexedDb("urineBaby");
+      await indexedDb.createObjectStore(["person"]);
+      //setResult(await indexedDb.getAllValue("person"));
+      const result1 = await indexedDb.getAllValue("person");
+      // setResult(JSON.parse(result1));
+      // console.log(result);
+      result1.map((item: object) => {
+        //data.push(item);
+        setData(item);
+      });
+      //setResultJson(JSON.stringify(result));
+      //console.log(resultJson);
+      //setResult(value);
+    };
+    runIndexDb();
+  }, []);
+
+  const onChange: TableProps<Results>["onChange"] = (
+    pagination,
+    filters,
+    sorter,
+    extra
+  ) => {
+    console.log("params", pagination, filters, sorter, extra);
+  };
+
+  const datas: Results[] = [
+    {
+      key: "1",
+      gender: data?.gender,
+      kawasaki: data?.kawasaki,
+      intersalt: data?.intersalt,
+      tanaka: data?.tanaka,
+    },
+  ];
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -406,13 +510,23 @@ const App: React.FC = () => {
                 </Col>
               </Space>
             </Row>
+            <Input
+              placeholder={JSON.stringify(datas)}
+              //onChange={(value) => setKSpot(value.target.value)}
+              addonAfter="hello"
+            />
             <Divider>
               {" "}
               <h3 style={{ color: "#1374F2" }}>Results</h3>
             </Divider>
             <Row>
               <Col span={22}>
-                <ResultTable tableData={tableData}></ResultTable>
+                {/* <ResultTable></ResultTable> */}
+                <Table
+                  columns={columns}
+                  dataSource={datas}
+                  onChange={onChange}
+                />
               </Col>
             </Row>
           </Content>

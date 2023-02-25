@@ -1,6 +1,8 @@
 import { Table } from "antd";
+import TextArea from "antd/es/input/TextArea";
 import { ColumnsType, TableProps } from "antd/es/table";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import IndexedDb from "../IndexedDb/IndexedDb";
 
 // const initialState: PatientInfo = {
 //   gender: this?.props.gender,
@@ -12,10 +14,14 @@ import React, { useEffect } from "react";
 //   kSpot: this.props.kSpot,
 // };
 
-const ResultTable = (props) => {
+const ResultTable = () => {
   //useEffect(() => console.log(props.crSpot));
 
   const columns: ColumnsType<Results> = [
+    {
+      title: "Id",
+      dataIndex: "id",
+    },
     {
       title: "Gender",
       dataIndex: "gender",
@@ -46,15 +52,37 @@ const ResultTable = (props) => {
     },
   ];
 
-  const data: Results[] = [
-    {
-      key: "1",
-      gender: props.message,
-      kawasaki: props.kawasaki,
-      intersalt: props.intersalt,
-      tanaka: props.tanaka,
-    },
-  ];
+  //const [result, setResult] = useState<Results>();
+
+  useEffect(() => {
+    const runIndexDb = async () => {
+      var items = [];
+      const indexedDb = new IndexedDb("urineBaby");
+      await indexedDb.createObjectStore(["person"]);
+      //setResult(await indexedDb.getAllValue("person"));
+      const result1 = await indexedDb.getAllValue("person");
+      // setResult(JSON.parse(result1));
+      // console.log(result);
+      result1.map((item: object) => {
+        data.push(item);
+      });
+      //setResultJson(JSON.stringify(result));
+      //console.log(resultJson);
+      //setResult(value);
+    };
+    runIndexDb();
+  }, []);
+
+  // const data: Results[] = [
+  //   {
+  //     key: 1,
+  //     gender: result?.gender,
+  //     kawasaki: result?.kawasaki,
+  //     intersalt: result?.intersalt,
+  //     tanaka: result?.tanaka,
+  //   },
+  // ];
+  const data: any = [];
 
   const onChange: TableProps<Results>["onChange"] = (
     pagination,
@@ -65,9 +93,12 @@ const ResultTable = (props) => {
     console.log("params", pagination, filters, sorter, extra);
   };
   return (
-    <div>
-      <Table columns={columns} dataSource={data} onChange={onChange} />
-    </div>
+    <>
+      <div>
+        <Table columns={columns} dataSource={data} onChange={onChange} />
+      </div>
+      {console.log(data)};
+    </>
   );
 };
 

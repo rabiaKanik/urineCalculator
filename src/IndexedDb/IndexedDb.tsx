@@ -1,6 +1,12 @@
 import { IDBPDatabase, openDB } from "idb";
 
 class IndexedDb {
+  // static putValue(
+  //   arg0: string,
+  //   arg1: { kawasaki: string; tanaka: string; intersalt: string }
+  // ) {
+  //   throw new Error("Method not implemented.");
+  // }
   private database: string;
   private db: any;
 
@@ -32,23 +38,39 @@ class IndexedDb {
     const tx = this.db.transaction(tableName, "readonly");
     const store = tx.objectStore(tableName);
     const result = await store.get(id);
-    console.log("Get Data ", JSON.stringify(result));
+    //console.log("Get Data ", JSON.stringify(result));
     return result;
   }
 
   public async getAllValue(tableName: string) {
     const tx = this.db.transaction(tableName, "readonly");
     const store = tx.objectStore(tableName);
-    const result = await store.getAll();
-    console.log("Get All Data", JSON.stringify(result));
-    return result;
+    // const request = store.openCursor();
+    // request.onerror = function (event) {
+    //   console.error("error fetching data");
+    // };
+    // request.onsuccess = function (event) {
+    //   let cursor = event.target.result;
+    //   if (cursor) {
+    //     let key = cursor.primaryKey;
+    //     let value = cursor.value;
+    //     console.log(key, value);
+    //     cursor.continue();
+    //   } else {
+    //     // no more results
+    //   }
+    // };
+    const request = await store.getAll();
+    //console.log("Get All Data", JSON.stringify(result));
+    return request;
   }
 
   public async putValue(tableName: string, value: object) {
     const tx = this.db.transaction(tableName, "readwrite");
     const store = tx.objectStore(tableName);
     const result = await store.put(value);
-    console.log("Put Data ", JSON.stringify(result));
+    //const result = await store.put(value2);
+    //console.log("Put Data ", JSON.stringify(result));
     return result;
   }
 

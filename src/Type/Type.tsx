@@ -1,9 +1,9 @@
 interface Results {
   key?: React.Key;
-  gender: string;
-  kawasaki: string;
-  intersalt: string;
-  tanaka: string;
+  gender?: string;
+  kawasaki?: string;
+  intersalt?: string;
+  tanaka?: string;
 }
 
 interface PatientInfo {
